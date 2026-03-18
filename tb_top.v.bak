@@ -1,0 +1,58 @@
+`timescale 1us / 1ns  // 时间单位 1us，精度 1ns (适配 1MHz 主频)
+
+module tb_top();
+
+    // 1. 定义顶层接口信号
+    reg  clk;
+    reg  KIN;
+    
+    wire [6:0] seg_AA;
+    wire [6:0] seg_BB;
+    wire [6:0] seg_CC;
+    wire [7:0] out;    
+
+    // 2. 实例化顶层模块 (UUT)
+    changable uut (
+        .clk    (clk),
+        .KIN    (KIN),
+        .seg_AA (seg_AA),
+        .seg_BB (seg_BB),
+        .seg_CC (seg_CC),
+        .out    (out)
+    );
+
+    // 3. 生成 1MHz 系统主时钟
+    always #0.5 clk = ~clk;
+
+    // 4. 编写物理级连续激励信号
+    initial begin
+        // --- 系统上电初始化 ---
+        clk = 0;
+        KIN = 1'b1;   
+        
+        // 档位 0：初始状态 100Hz (周期 10ms)
+        // 我们等待 20ms，正好能看到 2 个完美的 100Hz 完整波形
+        #20000; 
+
+        // --- 核心动作：连续按键 4 次 ---
+        // 我们用 repeat 循环来模拟连续按键的过程
+        repeat(4) begin
+            // 动作 1：稳定按下按键
+            // 保持 15ms。因为消抖需要 10ms，所以 15ms 绝对能触发一次有效的档位切换
+            KIN = 1'b0;
+            #15000; 
+            
+            // 动作 2：松开按键
+            KIN = 1'b1;
+            
+            // 动作 3：留出时间观察新档位的波形
+            // 每次切换后，我们都留出 20ms 的空白时间来欣赏波形。
+            // 随着频率升高，这 20ms 里包含的正弦波周期数会越来越多。
+            #20000; 
+        end
+
+        // 结束仿真
+        $stop;
+    end
+
+endmodule

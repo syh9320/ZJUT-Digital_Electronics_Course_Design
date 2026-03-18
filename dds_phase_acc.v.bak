@@ -1,0 +1,24 @@
+// 模块名：dds_phase_acc
+// 功能：DDS 核心相位累加器，产生 256 深度 ROM 的寻址地址
+module dds_phase_acc (
+    input  wire        clk,        // 系统主时钟 (如 50MHz 或 1MHz)
+    input  wire [23:0] freq_word,  // 24位频率控制字 (K)，即步长
+    output wire [7:0]  rom_addr    // 输出给 ROM 的 8 位地址线
+);
+
+    // 1. 定义 24 位相位累加器寄存器
+    // 这个寄存器构成了 2^24 个微小刻度的“圆周”
+    reg [23:0] acc;
+
+    // 2. 累加逻辑
+    // 每个时钟周期，累加器都会向前拨动 K (freq_word) 个刻度
+    always @(posedge clk) begin
+        acc <= acc + freq_word;
+    end
+
+    // 3. 输出截断 (Phase Truncation)
+    // 截取最高 8 位 [23:16] 作为地址输出
+    // 只有当低 16 位累加满并产生进位时，输出地址才会加 1
+    assign rom_addr = acc[23:16];
+
+endmodule

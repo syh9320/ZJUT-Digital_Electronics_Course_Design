@@ -1,0 +1,22 @@
+// 模块名：sawtooth_gen
+// 功能：利用 8 位自动溢出计数器产生锯齿波数字信号
+module sawtooth_gen(
+    input            clk,      // 接收来自 RC 振荡器的 1MHz 时钟
+    input            rst_n,    // 异步复位按键，低电平有效
+    output reg [7:0] dac_data  // 8位输出，准备送给外部的数模转换器 (DAC)
+);
+
+    // 时序逻辑：在每个时钟上升沿触发
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            // 按下复位键时，输出清零，波形回到最低点
+            dac_data <= 8'd0;
+        end
+        else begin
+            // 正常工作时，每个时钟节拍加 1
+            // 当加到 255 (8'hFF) 时，再加 1 会自动溢出变成 0，形成锯齿状跌落
+            dac_data <= dac_data + 1'b1;
+        end
+    end
+
+endmodule

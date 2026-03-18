@@ -1,0 +1,22 @@
+`timescale 1ns/1ps
+
+module tb_sine();
+    // 定义连接引脚的线
+    reg  sys_clk;
+    wire [7:0] out;
+
+    // 把你的原理图“实例化”进来 (就像放一块芯片)
+    // ⚠️ 注意：把下面的 DFG 换成你 .bdf 文件的真实名字！
+    sinGen uut (
+        .system_clk(sys_clk),
+        .out(out)
+    );
+
+    // 产生时钟信号：初始为0，每 500ns 翻转一次 (也就是 1MHz 的方波)
+    initial begin
+        sys_clk = 0;
+    end
+
+    always #500 sys_clk = ~sys_clk; 
+
+endmodule
